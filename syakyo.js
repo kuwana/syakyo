@@ -27,12 +27,9 @@ const screen = blessed.screen({
 
 screen.title = 'syakyo'
 
-// お題テキスト
-let text = `\
-test des {
-  return test
-}\
-`
+// お題テキストをファイルから読み込む TODO: data内のお題テキストを選択するインターフェースを用意
+var fs = require('fs');
+var text = fs.readFileSync('data/test/go_interface_example.go', 'utf-8');
 
 let typed = ''
 
