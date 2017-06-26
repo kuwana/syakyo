@@ -55,7 +55,10 @@ const snapshot = () => {
   let br = ''
   if (text.length === size) {
     // TODO: タイムと1分あたりのタイプ数を出力して終了するように
-    process.exit(0)
+    // process.exit(0)
+    clear.setContent('Clear!\ntime: ' + (spend / 100) + 'sec\nmiss: ' + miss.length)
+    screen.append(clear)
+    screen.render()
   }
   // FIXME
   if (typed[typed.length - 1] === '\n' && nextChar() === '\n' && typed[typed.length - 2] !== '\n') {
@@ -82,6 +85,7 @@ const typearea = blessed.box({
   }
 })
 
+// Message Area
 const msgarea = blessed.box({
   top: 'center',
   left: '65%',
@@ -96,6 +100,27 @@ const msgarea = blessed.box({
     border: {
       fg: '#f0f0f0'
     }
+  }
+})
+
+// Game clear view
+const clear = blessed.box({
+  top: 'center',
+  left: 'center',
+  width: '50%',
+  height: '40%',
+  content: miss.length,
+  tags: true,
+  border: {
+    type: 'line'
+  },
+  style: {
+    border: {
+      fg: '#f0f0f0'
+    },
+    focus: {
+      bg: 'green'
+    },
   }
 })
 
@@ -120,6 +145,10 @@ typearea.on('keypress', function(ch, e) {
 
 screen.append(typearea)
 screen.append(msgarea)
+
+// タイマースタート
+let spend = 0
+setInterval(function(){ spend++ }, 10)
 
 // C-cでプログラム終了
 screen.key('C-c', function() {
