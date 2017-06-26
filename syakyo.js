@@ -31,7 +31,7 @@ screen.title = 'syakyo'
 var fs = require('fs');
 var text = fs.readFileSync('data/test/go_interface_example.go', 'utf-8');
 
-let typed = ''
+let typed = miss = ''
 
 // text と typed を比較して、次に打つべき文字を確定
 const nextChar = () => {
@@ -42,6 +42,7 @@ const nextChar = () => {
 // タイプしたらtypedに一文字追加
 const pushTyped = (input) => {
   if (input !== nextChar()) {
+    miss += input
     return false
   }
   typed += input
@@ -58,10 +59,11 @@ const snapshot = () => {
   return typed.color('yellow') + text.slice(size).color('black')
 }
 
-const box = blessed.box({
+// layout: typing area
+const typearea = blessed.box({
   top: 'center',
-  left: 'center',
-  width: '80%',
+  left: '5%',
+  width: '60%',
   height: '100%',
   content: snapshot(),
   tags: true,
@@ -78,18 +80,41 @@ const box = blessed.box({
   }
 })
 
-box.on('keypress', function(ch, e) {
+const message = blessed.box({
+  top: 'center',
+  left: '65%',
+  width: '30%',
+  height: '100%',
+  content: miss.length,
+  tags: true,
+  border: {
+    type: 'line'
+  },
+  style: {
+    border: {
+      fg: '#f0f0f0'
+    },
+    hover: {
+      bg: 'green'
+    }
+  }
+})
+
+typearea.on('keypress', function(ch, e) {
   if (e.name === 'enter') {
     ch = '\n'
   }
   if (pushTyped('' + ch)) {
-    box.setContent(snapshot())
+    typearea.setContent(snapshot())
+    screen.render()
+  } else {
+    message.setContent('miss type: ' + miss.length)
     screen.render()
   }
-  // TODO: else でミス入力時の表示
 })
 
-screen.append(box)
+screen.append(typearea)
+screen.append(message)
 
 // C-cでプログラム終了
 screen.key('C-c', function() {
