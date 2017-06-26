@@ -29,7 +29,7 @@ screen.title = 'syakyo'
 
 // お題テキストをファイルから読み込む TODO: data内のお題テキストを選択するインターフェースを用意
 var fs = require('fs');
-var text = fs.readFileSync('data/test/go_interface_example.go', 'utf-8');
+var text = fs.readFileSync('data/test/test.go', 'utf-8');
 
 let typed = miss = ''
 
@@ -52,11 +52,16 @@ const pushTyped = (input) => {
 // 現在の入力状況（色分けテキスト）を取得
 const snapshot = () => {
   let size = typed.length
+  let br = ''
   if (text.length === size) {
     // TODO: タイムと1分あたりのタイプ数を出力して終了するように
     process.exit(0)
   }
-  return typed.color('yellow') + text.slice(size).color('black')
+  // FIXME
+  if (typed[typed.length - 1] === '\n' && nextChar() === '\n' && typed[typed.length - 2] !== '\n') {
+    br = '\n\n'
+  }
+  return typed.color('yellow') + br + text.slice(size).color('black')
 }
 
 // layout: typing area
@@ -73,14 +78,11 @@ const typearea = blessed.box({
   style: {
     border: {
       fg: '#f0f0f0'
-    },
-    hover: {
-      bg: 'green'
     }
   }
 })
 
-const message = blessed.box({
+const msgarea = blessed.box({
   top: 'center',
   left: '65%',
   width: '30%',
@@ -93,28 +95,31 @@ const message = blessed.box({
   style: {
     border: {
       fg: '#f0f0f0'
-    },
-    hover: {
-      bg: 'green'
     }
   }
 })
 
+// 入力イベント処理
 typearea.on('keypress', function(ch, e) {
   if (e.name === 'enter') {
+    return false
+  }
+  if (e.name === 'return') {
     ch = '\n'
   }
+  let message = 'next type is [' + nextChar() + ']'
   if (pushTyped('' + ch)) {
     typearea.setContent(snapshot())
-    screen.render()
+    message = 'next type is [' + nextChar() + ']'
   } else {
-    message.setContent('miss type: ' + miss.length)
-    screen.render()
+    message += '\nmiss type: ' + miss.length
   }
+  msgarea.setContent(message)
+  screen.render()
 })
 
 screen.append(typearea)
-screen.append(message)
+screen.append(msgarea)
 
 // C-cでプログラム終了
 screen.key('C-c', function() {
